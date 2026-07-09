@@ -8,36 +8,37 @@ module.exports = (req, res) => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-          body { font-family: 'Segoe UI', sans-serif; background: #000; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-          .card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); padding: 40px; border-radius: 40px; text-align: center; width: 320px; color: white; }
-          .avatar { width: 120px; height: 120px; border-radius: 50%; border: 4px solid #ff6600; margin: 0 auto 20px; background: #333; }
-          .btn-main { background: #ff6600; color: white; padding: 15px; border-radius: 50px; text-decoration: none; display: block; font-weight: bold; margin-bottom: 30px; }
-          .icons-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 40px; }
-          .icon-item { text-align: center; color: #aaa; font-size: 10px; }
-          .icon-circle { width: 45px; height: 45px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; color: #ff6600; font-weight: bold; }
-          .portafolio-cta { border-top: 1px solid #333; padding-top: 20px; }
-          .btn-portafolio { background: transparent; color: #ff6600; border: 2px solid #ff6600; padding: 12px; border-radius: 50px; text-decoration: none; font-weight: bold; display: block; }
+          body { font-family: 'Helvetica Neue', sans-serif; background: #050505; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+          .card { background: #121212; padding: 40px; border-radius: 40px; text-align: center; width: 320px; border: 1px solid #333; }
+          .avatar { width: 120px; height: 120px; border-radius: 50%; border: 4px solid #ff6600; margin: 0 auto 20px; background: #333; object-fit: cover; }
+          .btn-main { background: #ff6600; color: white; padding: 18px; border-radius: 20px; text-decoration: none; display: block; font-weight: bold; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(255, 102, 0, 0.3); }
+          .icons-grid { display: flex; justify-content: space-between; margin-bottom: 40px; }
+          .icon-item { text-align: center; }
+          .icon-circle { width: 55px; height: 55px; background: #1a1a1a; border: 1px solid #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 5px 10px rgba(0,0,0,0.5); margin-bottom: 8px; transition: 0.3s; }
+          .icon-circle:hover { background: #ff6600; }
+          .portafolio-box { background: rgba(255, 102, 0, 0.05); padding: 20px; border-radius: 20px; border: 1px dashed #ff6600; }
+          .text-small { color: #888; font-size: 11px; margin-top: 8px; }
         </style>
       </head>
       <body>
         <div class="card">
-          <div class="avatar"></div>
+          <img src="URL_DE_TU_FOTO" class="avatar" alt="Víctor Amaya">
           <h1>Víctor Amaya</h1>
-          <p>Gerente General - TÓCALA</p>
+          <p style="color: #ff6600;">Gerente General | TÓCALA</p>
           
           <a href="URL_TU_VCARD" class="btn-main">💾 Guardar contacto</a>
           
           <div class="icons-grid">
-            <div class="icon-item"><div class="icon-circle">📞</div>Llamar</div>
-            <div class="icon-item"><div class="icon-circle">✉️</div>Correo</div>
-            <div class="icon-item"><div class="icon-circle">in</div>Link</div>
-            <div class="icon-item"><div class="icon-circle">IG</div>Inst</div>
-            <div class="icon-item"><div class="icon-circle">🌐</div>Sitio</div>
+            <div class="icon-item"><div class="icon-circle">📞</div></div>
+            <div class="icon-item"><div class="icon-circle">✉️</div></div>
+            <div class="icon-item"><div class="icon-circle">in</div></div>
+            <div class="icon-item"><div class="icon-circle">IG</div></div>
+            <div class="icon-item"><div class="icon-circle">🌐</div></div>
           </div>
           
-          <div class="portafolio-cta">
-            <p style="font-size: 12px; margin-bottom: 10px;">Recibir mi portafolio</p>
-            <a href="URL_PORTAFOLIO" class="btn-portafolio">Enviar directo</a>
+          <div class="portafolio-box">
+            <a href="URL_PORTAFOLIO" style="color: white; font-weight: bold; text-decoration: none; display: block;">Recibir mi portafolio</a>
+            <div class="text-small">Víctor Amaya te lo envía directo, sin intermediarios.</div>
           </div>
         </div>
       </body>
