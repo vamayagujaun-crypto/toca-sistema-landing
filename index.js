@@ -1,80 +1,144 @@
 import { createClient } from '@supabase/supabase-js';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
 
-// Conexión real y directa a tu base de datos de Toca Sistema
-const supabase = createClient(
-  'https://vaxyzfozjymetmejlngg.supabase.co', 
-  'sb_publisible_Ec2MJLGkIKYNy8BMWb8vYQ_xmkrqX' // RECUERDA: Si copias el código completo con el botón, asegúrate de reemplazar esta línea con todo el texto largo.
-);
+// 1. Inicializamos la conexión con Supabase usando las variables que pusimos en Vercel
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export default function LandingPerfil() {
-  const router = useRouter();
-  const { username } = router.query; 
-  const [perfil, setPerfil] = useState(null);
-  const [cargando, setCargando] = useState(true);
+export default function Handler(req, res) {
+  // Configuramos encabezados para que se renderice como una página HTML limpia
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
 
-  useEffect(() => {
-    if (!username) return;
+  // 2. Capturamos el slug de la URL (ej: /agustin-amaya)
+  const { url } = req;
+  const slug = url.split('/').pop().split('?')[0];
 
-    async function cargarPerfil() {
-      const { data, error } = await supabase
-        .from('tarjetas_perfiles')
-        .select('*')
-        .eq('slug', username)
-        .single();
+  // Si entra a la raíz sin slug, mostramos un mensaje de bienvenida de la empresa
+  if (!slug || slug === "" || slug === "index.js") {
+    return res.end(renderPage({
+      nombre_completo: "Toca Sistema",
+      cargo: "Plataforma de Tarjetas NFC",
+      mensaje: "Bienvenido a Toca Sistema. Escanea una tarjeta para ver un perfil."
+    }));
+  }
 
-      if (data) setPerfil(data);
-      setCargando(false);
-    }
+  // 3. Consultamos en Supabase de forma asíncrona
+  supabase
+    .from('usuarios') // Ajusta aquí si tu tabla se llama diferente en Supabase
+    .select('*')
+    .eq('slug', slug)
+    .single()
+    .then(({ data, error }) => {
+      if (error || !data) {
+        // Si el usuario no existe en la base de datos
+        res.statusCode = 404;
+        return res.end(`
+          <div style="font-family:sans-serif; text-align:center; padding:50px;">
+            <h2>Perfil no encontrado</h2>
+            <p>El perfil con el identificador <strong>${slug}</strong> no está registrado en Toca Sistema.</p>
+          </div>
+        `);
+      }
 
-    cargarPerfil();
-  }, [username]);
+      // 4. Si lo encuentra, renderizamos la tarjeta digital con sus datos reales
+      res.statusCode = 200;
+      return res.end(renderPage(data));
+    });
+}
 
-  if (cargando) return <p style={{ textAlign: 'center', marginTop: '50px' }}>Cargando perfil digital...</p>;
-  if (!perfil) return <p style={{ textAlign: 'center', marginTop: '50px' }}>Perfil no encontrado o inactivo.</p>;
-
-  const descargarVCF = () => {
-    const vcardData = `BEGIN:VCARD\nVERSION:3.0\nFN:${perfil.nombre_completo}\nTITLE:${perfil.cargo}\nTEL;TYPE=CELL:${perfil.whatsapp}\nEND:VCARD`;
-    const blob = new Blob([vcardData], { type: 'text/vcard' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${perfil.nombre_completo}.vcf`;
-    a.click();
-  };
-
-  return (
-    <div style={{ maxWidth: '400px', margin: '0 auto', padding: '20px', fontFamily: 'Arial, sans-serif', textAlign: 'center' }}>
-      <img src={perfil.foto_url || '/avatar-placeholder.png'} alt="Perfil" style={{ width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover' }} />
-      <h1 style={{ fontSize: '24px', margin: '15px 0 5px 0' }}>{perfil.nombre_completo}</h1>
-      <p style={{ color: 'gray', margin: '0 0 20px 0' }}>{perfil.cargo}</p>
-
-      <button onClick={descargarVCF} style={{ width: '100%', padding: '15px', backgroundColor: '#0070f3', color: 'white', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', marginBottom: '15px' }}>
-        💾 Guardar en Contactos
-      </button>
-
-      <a href={`https://wa.me/${perfil.whatsapp}`} target="_blank" rel="noreferrer">
-        <button style={{ width: '100%', padding: '15px', backgroundColor: '#25D366', color: 'white', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', marginBottom: '15px' }}>
-          💬 Escríbenos por WhatsApp
-        </button>
-      </a>
-
-      {perfil.instagram_url && (
-        <a href={perfil.instagram_url} target="_blank" rel="noreferrer">
-          <button style={{ width: '100%', padding: '15px', backgroundColor: '#E1306C', color: 'white', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', marginBottom: '15px' }}>
-            📸 Síguenos en Instagram
-          </button>
-        </a>
-      )}
-
-      {perfil.ubicacion_maps && (
-        <a href={perfil.ubicacion_maps} target="_blank" rel="noreferrer">
-          <button style={{ width: '100%', padding: '15px', backgroundColor: '#4EA8DE', color: 'white', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer' }}>
-            📍 Cómo Llegar (Ubicación)
-          </button>
-        </a>
-      )}
-    </div>
-  );
+// 5. El diseño visual (HTML + CSS integrado y responsivo para celulares)
+function renderPage(user) {
+  return `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${user.nombre_completo} - Toca Sistema</title>
+      <style>
+        body {
+          margin: 0;
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background: #f4f7f6;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+        }
+        .card {
+          background: white;
+          width: 90%;
+          max-width: 400px;
+          border-radius: 20px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+          overflow: hidden;
+          text-align: center;
+          padding-bottom: 30px;
+        }
+        .header-bg {
+          background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+          height: 120px;
+        }
+        .avatar {
+          width: 100px;
+          height: 100px;
+          background: #2c5364;
+          color: white;
+          border-radius: 50%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-size: 36px;
+          font-weight: bold;
+          margin: -50px auto 15px auto;
+          border: 5px solid white;
+          box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        .name {
+          font-size: 24px;
+          color: #333;
+          margin: 10px 0 5px 0;
+          font-weight: 700;
+        }
+        .job {
+          font-size: 16px;
+          color: #777;
+          margin-bottom: 25px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+        .btn {
+          display: inline-block;
+          background: #203a43;
+          color: white;
+          padding: 12px 30px;
+          border-radius: 25px;
+          text-decoration: none;
+          font-weight: 600;
+          transition: background 0.3s;
+          margin-top: 10px;
+        }
+        .btn:hover {
+          background: #0f2027;
+        }
+        .footer-logo {
+          margin-top: 30px;
+          font-size: 12px;
+          color: #bbb;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <div class="header-bg"></div>
+        <div class="avatar">${user.nombre_completo.charAt(0)}</div>
+        <div class="name">${user.nombre_completo}</div>
+        <div class="job">${user.cargo}</div>
+        ${user.mensaje ? `<p style="padding: 0 20px; color:#555;">${user.mensaje}</p>` : ''}
+        <a href="#" class="btn">Guardar Contacto</a>
+        <div class="footer-logo">Potenciado por Toca Sistema NFC</div>
+      </div>
+    </body>
+    </html>
+  `;
 }
